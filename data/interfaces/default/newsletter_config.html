@@ -421,11 +421,19 @@
                                         <label for="message">Message</label>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <textarea class="form-control"  id="message" name="message" autocomplete="off" data-autoresize>${newsletter['message']}</textarea>
+                                                <div class="editor-controls">
+                                                    <div class="text-right">
+                                                        <button type="button" class="btn btn-sm btn-default" id="format-code">
+                                                            <i class="fa fa-magic"></i> Format Code
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div id="message-editor" style="height: 300px; border: 1px solid #ccc; border-radius: 4px;"></div>
+                                                <textarea class="form-control" id="message" name="message" autocomplete="off" style="display: none;">${newsletter['message']}</textarea>
                                             </div>
                                         </div>
                                         <p class="help-block">
-                                            Enter a custom message to include on the newsletter.
+                                            Enter a custom message to include on the newsletter. Supports HTML with syntax highlighting.
                                         </p>
                                     </div>
                                 </div>
@@ -470,8 +478,125 @@
     </div>
 </div>
 
-<script src="${http_root}js/jquery-cron-min.js"></script>
+        <script src="${http_root}js/jquery-cron-min.js"></script>
+        <script src="${http_root}js/ace.js"></script>
+        <script src="${http_root}js/mode-html.js"></script>
+        <script src="${http_root}js/theme-monokai.js"></script>
 <script>
+
+    // Initialize Ace Editor for the message field
+    var messageEditor;
+    
+    function initMessageEditor() {
+        if (messageEditor) {
+            messageEditor.destroy();
+        }
+        
+        try {
+            messageEditor = ace.edit('message-editor');
+            messageEditor.setTheme('ace/theme/monokai');
+            messageEditor.session.setMode('ace/mode/html');
+            messageEditor.setOptions({
+                enableBasicAutocompletion: true,
+                enableLiveAutocompletion: true,
+                enableSnippets: true,
+                showPrintMargin: false,
+                showGutter: true,
+                fontSize: '14px',
+                tabSize: 2,
+                wrap: true,
+                highlightActiveLine: true,
+                showInvisibles: false
+            });
+            
+            // Set initial value from the hidden textarea
+            var initialValue = $('#message').val() || '';
+            messageEditor.setValue(initialValue);
+            messageEditor.clearSelection();
+            
+            // Sync Ace editor content with hidden textarea on change
+            messageEditor.getSession().on('change', function() {
+                $('#message').val(messageEditor.getValue());
+            });
+            
+            // Handle paste events to clean up formatting
+            messageEditor.on('paste', function(e) {
+                setTimeout(function() {
+                    var content = messageEditor.getValue();
+                    // Basic cleanup of pasted content
+                    content = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+                    messageEditor.setValue(content);
+                }, 10);
+            });
+            
+            // Resize editor to fit content
+            messageEditor.resize();
+            
+            // Set up event handlers for editor controls
+            setupEditorControls();
+            
+            // Show a small success indicator
+            console.log('Ace editor initialized successfully for newsletter message field');
+            
+        } catch (error) {
+            console.error('Failed to initialize Ace editor:', error);
+            // Fallback to regular textarea if Ace editor fails
+            $('#message-editor').hide();
+            $('#message').show().removeAttr('style');
+        }
+    }
+    
+    function setupEditorControls() {
+        // Format code button
+        $('#format-code').off('click').on('click', function() {
+            if (messageEditor) {
+                var content = messageEditor.getValue();
+                content = formatHTML(content);
+                messageEditor.setValue(content);
+                messageEditor.clearSelection();
+            }
+        });
+    }
+    
+    function formatHTML(html) {
+        // Basic HTML formatting - this is a simple implementation
+        // You could integrate with a proper HTML formatter library for better results
+        return html
+            .replace(/>\s+</g, '>\n<')
+            .replace(/\n\s*\n/g, '\n')
+            .trim();
+    }
+    
+
+    
+    $(document).ready(function() {
+        // Initialize Ace editor when the modal is shown
+        $('#newsletter-config-modal').on('shown.bs.modal', function() {
+            // Small delay to ensure DOM is ready
+            setTimeout(function() {
+                if ($('#message-editor').length && !messageEditor) {
+                    initMessageEditor();
+                }
+            }, 100);
+        });
+        
+        // Clean up editor when modal is hidden
+        $('#newsletter-config-modal').on('hidden.bs.modal', function() {
+            if (messageEditor) {
+                messageEditor.destroy();
+                messageEditor = null;
+            }
+        });
+        
+        // Handle modal content changes (for dynamic content loading)
+        $(document).on('DOMNodeInserted', '#newsletter-config-modal', function() {
+            if ($('#message-editor').length && !messageEditor) {
+                setTimeout(function() {
+                    initMessageEditor();
+                }, 100);
+            }
+        });
+    });
 
     $('#newsletter-config-modal').unbind('hidden.bs.modal');
 
@@ -672,6 +797,12 @@
             async: true,
             complete: function (xhr, status) {
                 $('#newsletter-config-modal').html(xhr.responseText);
+                // Reinitialize the Ace editor after modal reload
+                setTimeout(function() {
+                    if ($('#message-editor').length) {
+                        initMessageEditor();
+                    }
+                }, 200);
             }
         });
     }
@@ -711,6 +842,11 @@
     }
 
     function saveNewsletter() {
+        // Sync Ace editor content before saving
+        if (messageEditor) {
+            $('#message').val(messageEditor.getValue());
+        }
+        
         // Trim all text inputs before saving
         $('input[type=text]').val(function(_, value) {
             return $.trim(value);
