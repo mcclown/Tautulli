@@ -423,12 +423,10 @@
                                             <div class="col-md-12">
                                                 <div class="editor-controls">
                                                     <div class="text-right">
-                                                        <button type="button" class="btn btn-sm btn-default" id="format-code">
-                                                            <i class="fa fa-magic"></i> Format Code
-                                                        </button>
+                                                        <input type="button" class="btn btn-dark btn-edit" id="format-code" value="Format Code"/>
                                                     </div>
                                                 </div>
-                                                <div id="message-editor" style="height: 300px; border: 1px solid #ccc; border-radius: 4px;"></div>
+                                                <div id="message-editor" style="width: 100%; height: 300px;"></div>
                                                 <textarea class="form-control" id="message" name="message" autocomplete="off" style="display: none;">${newsletter['message']}</textarea>
                                             </div>
                                         </div>
@@ -482,6 +480,7 @@
         <script src="${http_root}js/ace.js"></script>
         <script src="${http_root}js/mode-html.js"></script>
         <script src="${http_root}js/theme-monokai.js"></script>
+
 <script>
 
     // Initialize Ace Editor for the message field
@@ -493,20 +492,21 @@
         }
         
         try {
+            // Check if Ace editor is available
+            if (typeof ace === 'undefined') {
+                throw new Error('Ace editor not loaded');
+            }
+            
             messageEditor = ace.edit('message-editor');
             messageEditor.setTheme('ace/theme/monokai');
             messageEditor.session.setMode('ace/mode/html');
             messageEditor.setOptions({
-                enableBasicAutocompletion: true,
-                enableLiveAutocompletion: true,
-                enableSnippets: true,
                 showPrintMargin: false,
                 showGutter: true,
                 fontSize: '14px',
                 tabSize: 2,
                 wrap: true,
-                highlightActiveLine: true,
-                showInvisibles: false
+                highlightActiveLine: true
             });
             
             // Set initial value from the hidden textarea
@@ -519,30 +519,27 @@
                 $('#message').val(messageEditor.getValue());
             });
             
-            // Handle paste events to clean up formatting
-            messageEditor.on('paste', function(e) {
-                setTimeout(function() {
-                    var content = messageEditor.getValue();
-                    // Basic cleanup of pasted content
-                    content = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-                    messageEditor.setValue(content);
-                }, 10);
-            });
-            
             // Resize editor to fit content
             messageEditor.resize();
             
             // Set up event handlers for editor controls
             setupEditorControls();
             
-            // Show a small success indicator
-            console.log('Ace editor initialized successfully for newsletter message field');
-            
         } catch (error) {
             console.error('Failed to initialize Ace editor:', error);
             // Fallback to regular textarea if Ace editor fails
             $('#message-editor').hide();
-            $('#message').show().removeAttr('style');
+            $('#message').show().removeAttr('style').css({
+                'width': '100%',
+                'height': '300px',
+                'border': '1px solid #444',
+                'border-radius': '4px',
+                'background-color': '#333',
+                'color': '#eee',
+                'font-family': 'Monaco, Menlo, Ubuntu Mono, monospace',
+                'font-size': '14px',
+                'padding': '10px'
+            });
         }
     }
     
@@ -572,7 +569,6 @@
     $(document).ready(function() {
         // Initialize Ace editor when the modal is shown
         $('#newsletter-config-modal').on('shown.bs.modal', function() {
-            // Small delay to ensure DOM is ready
             setTimeout(function() {
                 if ($('#message-editor').length && !messageEditor) {
                     initMessageEditor();
@@ -585,15 +581,6 @@
             if (messageEditor) {
                 messageEditor.destroy();
                 messageEditor = null;
-            }
-        });
-        
-        // Handle modal content changes (for dynamic content loading)
-        $(document).on('DOMNodeInserted', '#newsletter-config-modal', function() {
-            if ($('#message-editor').length && !messageEditor) {
-                setTimeout(function() {
-                    initMessageEditor();
-                }, 100);
             }
         });
     });
