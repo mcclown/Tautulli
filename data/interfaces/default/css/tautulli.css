@@ -4620,6 +4620,12 @@ a.donate-with-crypto::after {
     border-radius: 4px;
 }
 
+/* Custom CSS to reduce Ace editor gutter width */
+#message-editor .ace_gutter-cell {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
 
 
 
