@@ -4627,7 +4627,7 @@ a.donate-with-crypto::after {
 }
 
 .editor-controls {
-    padding-bottom: 3px;
+    padding: 3px;
 }
 
 .editor-container {
