@@ -4626,19 +4626,39 @@ a.donate-with-crypto::after {
     padding-right: 8px;
 }
 
+.editor-container {
+    border: 1px solid #444;
+    border-radius: 4px;
+}
 
+.editor-control-btn {
+    margin-right: 8px;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease-in-out;
+}
 
+.editor-control-btn:hover {
+    background-color: #555;
+    border-color: #777;
+    transform: translateY(-1px);
+}
 
-#format-code {
-    float: right;
-    background-color: #444;
-    border-color: #666;
-    color: #eee;
+.editor-control-btn i {
+    font-size: 14px;
 }
 
 /* Responsive design for editor controls */
 @media (max-width: 768px) {
-    .editor-controls .text-right {
+    .editor-controls .text-left {
         text-align: left !important;
+    }
+    
+    .editor-control-btn {
+        margin-right: 6px;
+        width: 36px;
+        height: 36px;
     }
 }
