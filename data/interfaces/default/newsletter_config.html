@@ -430,7 +430,7 @@
                                                             <i class="fa fa-arrows-h"></i>
                                                         </button>
                                                         <button type="button" class="btn btn-dark btn-edit editor-control-btn" id="toggle-gutter" title="Toggle Gutter">
-                                                            <i class="fa fa-list"></i>
+                                                            <i class="fa fa-list-ol"></i>
                                                         </button>
                                                     </div>
                                                     <div id="message-editor" style="width: 100%; height: 300px;"></div>
@@ -533,9 +533,6 @@
             // Set up event handlers for editor controls
             setupEditorControls();
             
-            // Set initial button states
-            updateButtonStates();
-            
         } catch (error) {
             console.error('Failed to initialize Ace editor:', error);
             // Fallback to regular textarea if Ace editor fails
@@ -570,16 +567,6 @@
             if (messageEditor) {
                 var currentWrap = messageEditor.getSession().getUseWrapMode();
                 messageEditor.getSession().setUseWrapMode(!currentWrap);
-                
-                // Update button appearance to show current state
-                var icon = $(this).find('i');
-                if (!currentWrap) {
-                    icon.removeClass('fa-arrows-h').addClass('fa-arrows-alt-h');
-                    $(this).attr('title', 'Disable Word Wrap');
-                } else {
-                    icon.removeClass('fa-arrows-alt-h').addClass('fa-arrows-h');
-                    $(this).attr('title', 'Enable Word Wrap');
-                }
             }
         });
         
@@ -588,47 +575,11 @@
             if (messageEditor) {
                 var currentGutter = messageEditor.renderer.getShowGutter();
                 messageEditor.renderer.setShowGutter(!currentGutter);
-                
-                // Update button appearance to show current state
-                var icon = $(this).find('i');
-                if (!currentGutter) {
-                    icon.removeClass('fa-list').addClass('fa-list-alt');
-                    $(this).attr('title', 'Hide Gutter');
-                } else {
-                    icon.removeClass('fa-list-alt').addClass('fa-list');
-                    $(this).attr('title', 'Show Gutter');
-                }
             }
         });
     }
     
-    function updateButtonStates() {
-        if (messageEditor) {
-            // Update wrap button state
-            var wrapEnabled = messageEditor.getSession().getUseWrapMode();
-            var wrapBtn = $('#toggle-wrap');
-            var wrapIcon = wrapBtn.find('i');
-            if (wrapEnabled) {
-                wrapIcon.removeClass('fa-arrows-h').addClass('fa-arrows-alt-h');
-                wrapBtn.attr('title', 'Disable Word Wrap');
-            } else {
-                wrapIcon.removeClass('fa-arrows-alt-h').addClass('fa-arrows-h');
-                wrapBtn.attr('title', 'Enable Word Wrap');
-            }
-            
-            // Update gutter button state
-            var gutterVisible = messageEditor.renderer.getShowGutter();
-            var gutterBtn = $('#toggle-gutter');
-            var gutterIcon = gutterBtn.find('i');
-            if (gutterVisible) {
-                gutterIcon.removeClass('fa-list-alt').addClass('fa-list');
-                gutterBtn.attr('title', 'Hide Gutter');
-            } else {
-                gutterIcon.removeClass('fa-list').addClass('fa-list-alt');
-                gutterBtn.attr('title', 'Show Gutter');
-            }
-        }
-    }
+
     
     function formatHTML(html) {
         // Basic HTML formatting - this is a simple implementation
