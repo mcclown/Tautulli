@@ -10,39 +10,6 @@
     other_notifiers = [{'id': 0, 'agent_label': 'Select a Notification Agent', 'friendly_name': ''}] + all_notifiers
 %>
 
-<style>
-.editor-control-btn {
-    transition: all 0.3s ease;
-    margin-right: 5px;
-}
-
-.editor-control-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.editor-control-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.editor-control-btn .fa-spinner {
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.editor-controls {
-    margin-bottom: 10px;
-    padding: 8px;
-    background: rgba(0,0,0,0.1);
-    border-radius: 4px;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-</style>
 <div class="modal-dialog" role="document">
     <div class="modal-content">
         <div class="modal-header">
@@ -466,10 +433,6 @@
                                                         <button type="button" class="btn btn-dark btn-edit editor-control-btn" id="toggle-gutter" title="Toggle Gutter">
                                                             <i class="fa fa-list-ol"></i>
                                                         </button>
-                                                        <small class="text-muted" style="margin-left: 10px; font-size: 11px;">
-                                                            <i class="fa fa-info-circle"></i> 
-                                                            Use the magic wand to automatically format and beautify your HTML code
-                                                        </small>
                                                     </div>
                                                     <div id="message-editor" style="width: 100%; height: 300px;"></div>
                                                     <textarea class="form-control" id="message" name="message" autocomplete="off" style="display: none;">${newsletter['message']}</textarea>
@@ -667,64 +630,41 @@
             return cleanHtml;
         }
         
-        // Use js-beautify v1.15.4 for proper HTML formatting
-        if (typeof html_beautify !== 'undefined') {
-            try {
-                // Check if content looks like HTML
-                if (cleanHtml.includes('<') && cleanHtml.includes('>')) {
-                    return html_beautify(cleanHtml, {
-                        indent_size: 4,
-                        indent_char: ' ',
-                        max_preserve_newlines: 5,
-                        preserve_newlines: true,
-                        keep_array_indentation: false,
-                        break_chained_methods: false,
-                        indent_scripts: 'normal',
-                        brace_style: 'collapse',
-                        space_before_conditional: true,
-                        unescape_strings: false,
-                        jslint_happy: false,
-                        end_with_newline: false,
-                        wrap_line_length: 0,
-                        indent_inner_html: false,
-                        comma_first: false,
-                        e4x: false,
-                        indent_empty_lines: false
-                    });
-                } else {
-                    // If it's not HTML, try to format as plain text
-                    console.log('not html');
-                    return html_beautify('<div>' + cleanHtml + '</div>', {
-                        indent_size: 2,
-                        indent_char: ' ',
-                        max_preserve_newlines: 2,
-                        preserve_newlines: true
-                    }).replace(/^<div>/, '').replace(/<\/div>$/, '');
-                }
-            } catch (error) {
-                console.warn('js-beautify v1.15.4 failed, falling back to basic formatting:', error);
-                // Fallback to basic formatting if js-beautify fails
-                return formatHTMLBasic(cleanHtml);
+        try {
+            // Check if content looks like HTML
+            if (cleanHtml.includes('<') && cleanHtml.includes('>')) {
+                return html_beautify(cleanHtml, {
+                    indent_size: 4,
+                    indent_char: ' ',
+                    max_preserve_newlines: 5,
+                    preserve_newlines: true,
+                    keep_array_indentation: false,
+                    break_chained_methods: false,
+                    indent_scripts: 'normal',
+                    brace_style: 'collapse',
+                    space_before_conditional: true,
+                    unescape_strings: false,
+                    jslint_happy: false,
+                    end_with_newline: false,
+                    wrap_line_length: 0,
+                    indent_inner_html: false,
+                    comma_first: false,
+                    e4x: false,
+                    indent_empty_lines: false
+                });
+            } else {
+                // If it's not HTML, try to format as plain text
+                return html_beautify('<div>' + cleanHtml + '</div>', {
+                    indent_size: 2,
+                    indent_char: ' ',
+                    max_preserve_newlines: 2,
+                    preserve_newlines: true
+                }).replace(/^<div>/, '').replace(/<\/div>$/, '');
             }
-        } else {
-            // Fallback to basic formatting if html_beautify is not loaded
-            return formatHTMLBasic(cleanHtml);
+        } catch (error) {
+            console.warn('js-beautify failed', error);
         }
     }
-    
-    function formatHTMLBasic(html) {
-        // Basic HTML formatting fallback
-        return html
-            .replace(/>\s+</g, '>\n<')
-            .replace(/\n\s*\n/g, '\n')
-            .replace(/(<[^>]+>)/g, function(match) {
-                // Add line breaks around tags for better readability
-                return '\n' + match + '\n';
-            })
-            .replace(/\n\s*\n/g, '\n')
-            .trim();
-    }
-    
 
     
     $(document).ready(function() {
