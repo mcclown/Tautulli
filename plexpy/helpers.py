@@ -1735,3 +1735,9 @@ def get_ipv6_network_address(ip: str) -> str:
     if cidr_pattern.match(plexpy.CONFIG.NOTIFY_CONCURRENT_IPV6_CIDR):
         cidr = plexpy.CONFIG.NOTIFY_CONCURRENT_IPV6_CIDR
     return str(ip_network(ip+cidr, strict=False).network_address)
+
+
+def is_subdir(child: str, parent: str) -> bool:
+    child = os.path.abspath(child)
+    parent = os.path.abspath(parent)
+    return os.path.commonpath([parent]) == os.path.commonpath([parent, child])

@@ -4740,7 +4740,7 @@ class WebInterface(object):
                 opacity (str):          25
                 background (str):       Hex color, e.g. 282828
                 blur (str):             3
-                img_format (str):       png
+                img_format (str):       png or jpg
                 fallback (str):         "poster", "cover", "art", "poster-live", "art-live", "art-live-full", "user"
                 refresh (bool):         True or False whether to refresh the image cache
                 return_hash (bool):     True or False to return the self-hosted image hash instead of the image
@@ -4752,13 +4752,17 @@ class WebInterface(object):
         cherrypy.response.headers['Cache-Control'] = 'max-age=2592000'  # 30 days
 
         if isinstance(img, str) and img.startswith('interfaces/default/images'):
-            fp = os.path.join(plexpy.PROG_DIR, 'data', img)
+            resource_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/default/images')
+            img_path = os.path.join(plexpy.PROG_DIR, 'data', img)
+            if not helpers.is_subdir(img_path, resource_dir):
+                return
+
             ext = img.rsplit(".", 1)[-1]
             if ext == 'svg':
                 content_type = 'image/svg+xml'
             else:
                 content_type = 'image/{}'.format(ext)
-            return serve_file(path=fp, content_type=content_type)
+            return serve_file(path=img_path, content_type=content_type)
 
         if not img and not rating_key:
             if fallback in common.DEFAULT_IMAGES:
@@ -4796,12 +4800,15 @@ class WebInterface(object):
         if return_hash:
             return {'img_hash': img_hash}
 
+        if img_format not in ('png', 'jpg'):
+            img_format = 'png'
+
         fp = '{}.{}'.format(img_hash, img_format)  # we want to be able to preview the thumbs
         c_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images')
         ffp = os.path.join(c_dir, fp)
 
         if not os.path.exists(c_dir):
-            os.mkdir(c_dir)
+            os.makedirs(c_dir, exist_ok=True)
 
         clip = helpers.bool_true(clip)
 
@@ -4855,9 +4862,13 @@ class WebInterface(object):
             cherrypy.response.headers['Cache-Control'] = 'max-age=3600'  # 1 hour
 
             if len(args) >= 2 and args[0] == 'images':
-                resource_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/default/')
+                resource_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/default')
+                img_path = os.path.join(resource_dir, *args)
+                if not helpers.is_subdir(img_path, resource_dir):
+                    return
+
                 try:
-                    return serve_file(path=os.path.join(resource_dir, *args), content_type='image/png')
+                    return serve_file(path=img_path, content_type='image/png')
                 except NotFound:
                     return
 
