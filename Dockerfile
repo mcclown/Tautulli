@@ -11,13 +11,24 @@ ENV TZ=UTC
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
+    git \
+    build-essential \
+    libffi-dev \
+    libssl-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY . /app
 
 # Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Add lib directory to Python path
+ENV PYTHONPATH=/app/lib:$PYTHONPATH
 
 RUN \
   groupadd -g 1000 tautulli && \
