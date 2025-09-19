@@ -1,4 +1,4 @@
-FROM ghcr.io/tautulli/tautulli-baseimage:python3
+FROM python:3.11-slim
 
 LABEL maintainer="Tautulli"
 
@@ -8,8 +8,17 @@ ARG COMMIT
 ENV TAUTULLI_DOCKER=True
 ENV TZ=UTC
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY . /app
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
 RUN \
   groupadd -g 1000 tautulli && \
   useradd -u 1000 -g 1000 tautulli && \
