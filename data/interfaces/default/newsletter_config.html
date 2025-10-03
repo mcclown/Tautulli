@@ -682,12 +682,8 @@
     
     $(document).ready(function() {
         // Initialize Ace editor when the modal is shown
-        $('#newsletter-config-modal').on('shown.bs.modal', function() {
-            setTimeout(function() {
-                if ($('#message-editor').length && !messageEditor) {
-                    initMessageEditor();
-                }
-            }, 100);
+        $('#newsletter-text-tab').on('shown.bs.tab', function() {
+            initMessageEditor();
         });
         
         // Clean up editor when modal is hidden
