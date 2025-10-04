@@ -74,8 +74,12 @@ jobs:
         run: |
           pyinstaller -y ./package/Tautulli-${{ matrix.os }}.spec
 
+      - name: Install makensis (choco)
+        if: matrix.os == 'windows'
+        run: choco install nsis
+      
       - name: Create Windows Installer
-        uses: joncloud/makensis-action@v4.1
+        uses: joncloud/makensis-action@v5.0
         if: matrix.os == 'windows'
         with:
           script-file: ./package/Tautulli.nsi

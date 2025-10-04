@@ -682,9 +682,9 @@ getPlexOAuthPin = function (clientID) {
 
 var polling = null;
 
-function PlexOAuth(success, error, pre, clientID) {
-    if (typeof pre === "function") {
-        pre()
+function PlexOAuth(successCallback, errorCallback, maxRetryCallback, pollingCallback, preFunction, clientID) {
+    if (typeof preFunction === "function") {
+        preFunction()
     }
     closePlexOAuthWindow();
     plex_oauth_window = PopupCenter('', 'Plex-OAuth', 600, 700);
@@ -710,41 +710,46 @@ function PlexOAuth(success, error, pre, clientID) {
         }
 
         plex_oauth_window.location = 'https://app.plex.tv/auth/#!?' + encodeData(oauth_params);
-        polling = pin;
+        polling = pin;  // Set pin to prevent polling from multiple popups
+
+        let maxPollCount = 120;  // 2 minutes at 1-second intervals
 
         (function poll() {
+            maxPollCount--;
+
             $.ajax({
                 url: 'https://plex.tv/api/v2/pins/' + pin,
                 type: 'GET',
                 headers: x_plex_headers,
                 success: function (data) {
                     if (data.authToken){
+                        polling = null;
                         closePlexOAuthWindow();
-                        if (typeof success === "function") {
-                            success(data.authToken)
-                        }
-                    }
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    if (textStatus !== "timeout") {
-                        closePlexOAuthWindow();
-                        if (typeof error === "function") {
-                            error()
+                        if (typeof successCallback === "function") {
+                            successCallback(data.authToken)
                         }
                     }
                 },
                 complete: function () {
-                    if (!plex_oauth_window.closed && polling === pin){
+                    if (maxPollCount <= 0) {
+                        closePlexOAuthWindow();
+                        if (typeof maxRetryCallback === "function") {
+                            maxRetryCallback()
+                        }
+                    } else if (polling === pin) {
                         setTimeout(function() {poll()}, 1000);
+                        if (typeof pollingCallback === "function") {
+                            pollingCallback(maxPollCount);
+                        }
                     }
                 },
-                timeout: 10000
+                timeout: 1000
             });
         })();
     }, function () {
         closePlexOAuthWindow();
-        if (typeof error === "function") {
-            error()
+        if (typeof errorCallback === "function") {
+            errorCallback()
         }
     });
 }
