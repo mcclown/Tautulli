@@ -681,7 +681,7 @@
     
     $(document).ready(function() {
         // Initialize Ace editor when the modal is shown
-        $('#newsletter-text-tab').on('shown.bs.tab', function() {
+        $('#newsletter-text-tab').one('shown.bs.tab', function() {
             initMessageEditor();
         });
         
